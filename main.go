@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -13,6 +14,12 @@ import (
 
 
 func main() {
+	
+// 	err := godotenv.Load() // used for local testing
+// 	if err != nil {
+//     log.Fatal("Error loading .env file:", err)
+// }
+
 	botToken := os.Getenv("BOT_TOKEN") // heroku envar
 	launchpadChannel := "1091545478576996453"
 	carlBot := "235148962103951360"
@@ -51,6 +58,20 @@ func main() {
 		log.Fatal(err)
 	}
 	defer sess.Close()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	go func() {
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "Bot is online!")
+		})
+		if err := http.ListenAndServe(":"+port, nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	fmt.Println("EMU online!")
 
